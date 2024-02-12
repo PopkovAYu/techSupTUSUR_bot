@@ -18,30 +18,50 @@ class Config:
     tg_bot: TgBot
     db: DatabaseConfig
 
-# Creating examplair of Env class
-env: Env = Env()
+# # Creating examplair of Env class
+# env: Env = Env()
 
-# Adding data from .env to enviroment variables
-env.read_env()
+# # Adding data from .env to enviroment variables
+# env.read_env()
 
-# Creating Config class examplair and fill it with data from env var
-config = Config(
-    tg_bot=TgBot(
-        token=env('BOT_TOKEN'),
-        admin_ids=list(map(int, env.list('ADMIN_IDS')))
-    ),
-    db=DatabaseConfig(
-        database=env('DATABASE'),
-        db_host=env('DB_HOST'),
-        db_user=env('DB_USER'),
-        db_password=env('DB_PASSWORD')
+# # Creating Config class examplair and fill it with data from env var
+# config = Config(
+#     tg_bot=TgBot(
+#         token=env('BOT_TOKEN'),
+#         admin_ids=list(map(int, env.list('ADMIN_IDS')))
+#     ),
+#     db=DatabaseConfig(
+#         database=env('DATABASE'),
+#         db_host=env('DB_HOST'),
+#         db_user=env('DB_USER'),
+#         db_password=env('DB_PASSWORD')
+#     )
+# )
+
+# OR
+
+def load_config(path: str | None = None) -> Config:
+
+    env: Env = Env()
+    env.read_env(path)
+
+    return Config(
+        tg_bot=TgBot(
+            token=env('BOT_TOKEN'),
+            admin_ids=list(map(int, env.list('ADMIN_IDS')))
+        ),
+        db=DatabaseConfig(
+            database=env('DATABASE'),
+            db_host=env('DB_HOST'),
+            db_user=env('DB_USER'),
+            db_password=env('DB_PASSWORD')
+        )
     )
-)
 
-print('BOT_TOKEN:', config.tg_bot.token)
-print('ADMIN_IDS:', config.tg_bot.admin_ids)
-print()
-print('DATAABASE:', config.db.database)
-print('DB_HOST:', config.db.db_host)
-print('DB_USER:', config.db.db_user)
-print('DB_PASSWORD:', config.db.db_password)
+# print('BOT_TOKEN:', config.tg_bot.token)
+# print('ADMIN_IDS:', config.tg_bot.admin_ids)
+# print()
+# print('DATAABASE:', config.db.database)
+# print('DB_HOST:', config.db.db_host)
+# print('DB_USER:', config.db.db_user)
+# print('DB_PASSWORD:', config.db.db_password)
