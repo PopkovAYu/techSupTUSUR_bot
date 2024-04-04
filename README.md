@@ -1,2 +1,3 @@
-# bot_template
-Template for new bots
+# techSupTUSUR_bot
+
+Чат-бот технической поддержки ТУСУР

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from environs import Env
 
+
 @dataclass
 class DatabaseConfig:
     database: str  # database name
@@ -8,10 +9,12 @@ class DatabaseConfig:
     db_user: str  # DB user's Username
     db_password: str  # DB password
 
+
 @dataclass
 class TgBot:
     token: str  # bot token
     admin_ids: list[int]  # admin ids list
+
 
 @dataclass
 class Config:
@@ -39,6 +42,7 @@ class Config:
 # )
 
 # OR
+
 
 def load_config(path: str | None = None) -> Config:
 
