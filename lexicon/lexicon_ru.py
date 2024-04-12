@@ -16,7 +16,7 @@ LEXICON: dict[str, str] = {
     'to_support': 'Подать заявку',
     'check': 'Проверить заявку',
     'knowlage_base_choice': 'Выберете <b>раздел Базы знаний</b> или нажмите <b>"Начать"</b>, '
-                            'вернуться в стартовое меню',
+                            'чтобы вернуться в стартовое меню',
     'web_resources': 'Веб-ресурсы ТУСУР',
     'mobile_app': 'Мобильное приложение'  
 }
@@ -38,5 +38,9 @@ LEXICON_COMMANDS: dict[str, str] = {
 }
 
 LEXICON_FAQ: dict[str, str] = {
+    
+}
+
+LEXICON_ADMIN: dict[str, str] = {
     
 }

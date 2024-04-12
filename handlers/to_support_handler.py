@@ -1,17 +1,5 @@
-from copy import deepcopy
-
 from aiogram import F, Router
 from aiogram.filters import Command, CommandStart, StateFilter
-from aiogram.types import Message, CallbackQuery
-# from database.database import user_dict_template, users_db
-# from filters.filters import IsDelBookmarkCallbackData, IsDigitCallbackData
-# from keyboards.bookmarks_kb import (create_bookmarks_keyboard,
-#                                     create_edit_keyboard)
-from keyboards.keyboard import create_inline_kb, create_inline__url_kb
-from keyboards.start_keyboard import create_start_kb
-from lexicon.lexicon_ru import LEXICON
-# from utils.help_desk import send_application
-# from services.file_handling import book
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state, State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
@@ -21,49 +9,10 @@ from bs4 import BeautifulSoup
 import requests
 import os
 from aiogram.types import FSInputFile
-from PIL import Image
 
 
 router = Router()
-
-# Этот хэндлер будет срабатывать на команду "/start" -
-# добавлять пользователя в базу данных, если его там еще не было
-# и отправлять ему приветственное сообщение
-@router.message(CommandStart())
-async def process_start_command(message: Message):
-    await message.answer(LEXICON['/start'], 
-                        #  reply_markup=create_inline_kb(2, 'to_support', 'knowlage_base', button_1='Кнопка 1'),
-                         reply_markup=create_start_kb()
-                         )
-    # if message.from_user.id not in users_db:
-    #     users_db[message.from_user.id] = deepcopy(user_dict_template)
-
-
-# Этот хэндлер будет срабатывать на команду "/help"
-# и отправлять пользователю сообщение со списком доступных команд в боте
-@router.message(Command(commands='help'))
-async def process_help_command(message: Message):
-    await message.answer(LEXICON[message.text])
-
-
-@router.message(F.text == 'Начать')
-async def process_start_button(message: Message):
-    await message.answer(text=LEXICON['start'], 
-                        reply_markup=create_inline_kb(1, 'to_support', 'check', 'knowlage_base'),
-                        )
-
-# Этот хэндлер будет срабатывать на апдейт типа CallbackQuery
-# с data 'knowlage_base' 
-
-@router.callback_query(F.data == 'knowlage_base')
-async def process_buttons_press(callback: CallbackQuery):
-    if callback.message.text != LEXICON['knowlage_base']:
-        await callback.message.edit_text(
-            text=LEXICON['knowlage_base_choice'], 
-            reply_markup=create_inline__url_kb(1, 'web_resources', 'mobile_app')
-            )
-    await callback.answer()
-
+# Инициализируем хранилище (создаем экземпляр класса MemoryStorage)
 storage = MemoryStorage()
 # Создаем "базу данных" пользователей
 user_dict = {}
@@ -84,13 +33,13 @@ class FSMFillForm(StatesGroup):
 
 # Этот хэндлер будет срабатывать на команду /start вне состояний
 # и предлагать перейти к заполнению анкеты, отправив команду /fillform
-# @router.callback_query(F.data == 'to_support', StateFilter(default_state))
-# async def process_start_command(message: Message):
-#     await message.answer(
-#         text='Этот бот демонстрирует работу FSM\n\n'
-#              'Чтобы перейти к заполнению анкеты - '
-#              'отправьте команду /fillform'
-#     )
+@router.message(CommandStart(), StateFilter(default_state))
+async def process_start_command(message: Message):
+    await message.answer(
+        text='Этот бот демонстрирует работу FSM\n\n'
+             'Чтобы перейти к заполнению анкеты - '
+             'отправьте команду /fillform'
+    )
 
 
 # Этот хэндлер будет срабатывать на команду "/cancel" в состоянии
@@ -119,9 +68,9 @@ async def process_cancel_command_state(message: Message, state: FSMContext):
 
 # Этот хэндлер будет срабатывать на команду /fillform
 # и переводить бота в состояние ожидания ввода имени
-@router.callback_query(F.data == "to_support", StateFilter(default_state))
-async def process_fillform_command(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text(text='Пожалуйста, введите ваши ФИО')
+@router.message(Command(commands='fillform'), StateFilter(default_state))
+async def process_fillform_command(message: Message, state: FSMContext):
+    await message.answer(text='Пожалуйста, введите ваши ФИО')
     # Устанавливаем состояние ожидания ввода имени
     await state.set_state(FSMFillForm.fill_name)
 
@@ -177,17 +126,13 @@ async def process_message_sent(message: Message, state: FSMContext):
     user_dict[message.from_user.id]['token'] = user_dict[message.from_user.id].get('token', token['value'])
     mysecnum = soup.find('img', {'name': 'secimg'})
     sec_num = str(mysecnum).split('?')[-1].split('\"')[0]
-    img_data = requests.get(f'https://help.tusur.ru/{mysecnum["src"]}.png', cookies=user_dict[message.from_user.id]['cookies']).content
-    with open(f'captcha_{sec_num}.png', 'wb') as captcha:
-        captcha.write(img_data)
-    background = Image.new('RGBA', (150, 100), (255, 0, 0, 0))
-    image = Image.open(f'captcha_{sec_num}.png')
-    background.paste(image, (0, 30))
-    background.save(f'captcha_{sec_num}.png')
-    photo = FSInputFile(f'captcha_{sec_num}.png')
+    img_data = requests.get(f'https://help.tusur.ru/{mysecnum["src"]}.jpeg', cookies=user_dict[message.from_user.id]['cookies']).content
+    with open(f'captcha_{sec_num}.jpeg', 'wb') as handler:
+        handler.write(img_data)
+    photo = FSInputFile(f'captcha_{sec_num}.jpeg')
     await message.answer_photo(photo, caption='Введите число с картинки')
     try:
-        os.remove(f'captcha_{sec_num}.png')
+        os.remove(f'captcha_{sec_num}.jpeg')
     except OSError:
         pass
     await state.set_state(FSMFillForm.fill_sec_num)
